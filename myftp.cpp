@@ -6,8 +6,18 @@
 #include <string.h>
 #include <string>
 #include <iostream>
+#include <thread>
 
 using namespace std;
+
+void worker(string msg, int sock) {
+	int valread;
+	char buffer[1024] = {0};
+	send(sock , msg.c_str() , msg.length() , 0 ); 
+	printf("Message sent\n"); //because threaded this sends after the prompt appears, user sleep or dont send anything
+	valread = read( sock , buffer, 1024);
+	printf("%s\n",buffer );
+}
 
 int main(int argc, char const *argv[])
 {
@@ -17,10 +27,9 @@ int main(int argc, char const *argv[])
 	}
 	const char *hostname = argv[1];
 	int port = atoi(argv[2]);
-	int sock = 0, valread;
+	int sock = 0;
 	string msg;
 	struct sockaddr_in serv_addr;
-	char buffer[1024] = {0};
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		printf("\n Socket creation error \n");
@@ -42,12 +51,18 @@ int main(int argc, char const *argv[])
 		printf("\nConnection Failed \n");
 		return -1;
 	}
+	thread tid[50];
+	int i = 0;
 	while (true) { //loop until quit is called
 		printf("myftp>");
 		getline(cin, msg); //read user input
-		send(sock , msg.c_str() , msg.length() , 0 ); 
-		printf("Message sent\n");
-		valread = read( sock , buffer, 1024);
-		printf("%s\n",buffer );
+		tid[i] = thread(worker, msg, sock);
+		i++;
+		if (i >= 50) {
+			for (i = 0; i < 50; i++) {
+				tid[i].join();
+			}
+			i = 0;
+		}
 	}
 }

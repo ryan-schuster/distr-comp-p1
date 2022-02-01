@@ -65,7 +65,8 @@ int main(int argc, char const *argv[])
         perror("listen");
         exit(EXIT_FAILURE);
     }
-    thread tid;
+    thread tid[50];
+    int i = 0;
     while (true) { //run through for every quit command
 
         if ((newSocket = accept(serverFd, (struct sockaddr *)&address,
@@ -75,11 +76,17 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
         while (true) { //continue to accept requests from a connection
-            tid = thread(socketThread, newSocket); //new thread for every request, calls socketThread function
+            tid[i] = thread(socketThread, newSocket); //new thread for every request, calls socketThread function
             /*    perror("failed to make thread"); //error checking code to implement later
                 exit(EXIT_FAILURE);
             }*/
-            tid.join(); //waits for thread to finish
+            i++;
+            if (i >= 50) {
+                for (i = 0; i < 50; i++) {
+                    tid[i].join(); //waits for thread to finish
+                }
+                i = 0;
+            }
         
         }
           
