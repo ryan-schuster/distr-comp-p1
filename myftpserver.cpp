@@ -5,22 +5,38 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <thread>
+#include <sstream>
 
 using namespace std;
 
 void socketThread(int newSocket) {
 	char buffer[1024] = {0};
-	char *hello = "Hello from server";
     int valread = read(newSocket , buffer, 1024);
-    printf("%s\n",buffer );
-    send(newSocket , hello , strlen(hello) , 0 );
-    printf("Hello message sent\n");
+    string buf(buffer); //constructor casts char[] into string
+    int index = buf.find(" "); //index where first space is
+    string token = buf.substr(0, index); //first word
 
+    if (token.compare("get") == 0) {
+
+    } else if (token.compare("put") == 0) {
+        printf("Put received\n");
+    } else if (token.compare("delete") == 0) {
+
+    } else if (token.compare("ls") == 0) {
+
+    } else if (token.compare("cd") == 0) {
+
+    } else if (token.compare("mkdir") == 0) {
+
+    } else if (token.compare("pwd") == 0) {
+
+    } else if (token.compare("quit") == 0) {
+
+    }
 }
 
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     if (argc < 2) { //checks if there are at least two arguments
         printf("usage: myftpserver <port>\n");
         return 0;

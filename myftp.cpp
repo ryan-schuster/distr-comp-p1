@@ -14,7 +14,6 @@ void worker(string msg, int sock) {
 	int valread;
 	char buffer[1024] = {0};
 	send(sock , msg.c_str() , msg.length() , 0 ); 
-	printf("Message sent\n"); //because threaded this sends after the prompt appears, user sleep or dont send anything
 	valread = read( sock , buffer, 1024);
 	printf("%s\n",buffer );
 }
