@@ -34,7 +34,7 @@ void socketThread(int newSocket) {
     if (token.compare("get") == 0) {
 
     } else if (token.compare("put") == 0) {
-        cout << arg2 << endl;
+
     } else if (token.compare("delete") == 0) {
 
     } else if (token.compare("ls") == 0) {
