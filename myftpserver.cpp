@@ -37,7 +37,14 @@ void socketThread(int newSocket) {
     } else if (token.compare("delete") == 0) {
 
     } else if (token.compare("ls") == 0) {
-
+	struct dirent *dr;
+    	string s = "";
+   	DIR *directory = opendir(".");
+        for(dr=readdir(directory); dr!=NULL; dr=readdir(directory)){
+           s = s + ", " + dr->d_name;
+	}
+        send(newSocket, s.c_str(), s.length(), 0);
+        closedir(directory);
     } else if (token.compare("cd") == 0) {
         if (chdir(arg2) != 0) { //changes into directory or the if statments triggers
             string cdError = token + ": " + token2 + ": No such file or directory";
@@ -55,6 +62,9 @@ void socketThread(int newSocket) {
             send(newSocket, mkdirError.c_str(), mkdirError.length(), 0);
         }
     } else if (token.compare("pwd") == 0) {
+	char st[256];
+        string cwd = getcwd(st, 256);
+	send(newSocket, cwd.c_str(), cwd.length(), 0);
 
     } else if (token.compare("quit") == 0) {
 
