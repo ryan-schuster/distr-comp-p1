@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iostream>
 #include <sys/wait.h>
+#include <dirent.h>
 
 using namespace std;
 
