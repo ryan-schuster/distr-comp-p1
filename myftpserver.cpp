@@ -7,6 +7,7 @@
 #include <thread>
 #include <sstream>
 #include <iostream>
+#include <sys/wait.h>
 
 using namespace std;
 
@@ -20,6 +21,14 @@ void socketThread(int newSocket) {
     string token2 = buf.substr(index + 1, index2 - index); //second word
     const char* arg = token.c_str(); //first word but in char* format
     const char * arg2 = token2.c_str(); //second word but in char* format
+    int pid;
+    int status;
+
+    char * args[3]; //used for execvp
+    args[0] = const_cast<char*>(token.c_str());
+    args[1] = const_cast<char*>(token2.c_str());
+    args[2] = NULL;
+
 
     if (token.compare("get") == 0) {
 
@@ -35,7 +44,16 @@ void socketThread(int newSocket) {
             send(newSocket, cdError.c_str(), cdError.length(), 0);
         }
     } else if (token.compare("mkdir") == 0) {
-
+        pid = fork();
+        if (pid == 0) { //forks and executes command
+            execvp(arg, args); 
+            exit(0);
+        }
+        waitpid(pid, &status, 0);
+        if (status != 0) { //if execvp fails
+            string mkdirError = token + ": cannot create directory " + token2  + ": File exists";
+            send(newSocket, mkdirError.c_str(), mkdirError.length(), 0);
+        }
     } else if (token.compare("pwd") == 0) {
 
     } else if (token.compare("quit") == 0) {
