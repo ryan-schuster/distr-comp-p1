@@ -11,19 +11,11 @@
 using namespace std;
 
 void worker(string msg, int sock) {
-	int index = msg.find(" "); //get first two words for error displaying
-    int index2 = msg.find(" ", index + 1);
-    string token = msg.substr(0, index); //first word
-    string token2 = msg.substr(index + 1, index2 - index); //second word
-    
 	int valread;
 	char buffer[1024] = {0};
 	send(sock , msg.c_str() , msg.length() , 0 ); 
 	valread = read( sock , buffer, 1024);
-
-	if (strcmp(buffer, "cdError") == 0) { 
-		cout << token << ": " << token2 << ": No such file or directory" << endl;
-	}
+	cout << buffer << endl; //print error or msg that needs to be printed
 }
 
 int main(int argc, char const *argv[])

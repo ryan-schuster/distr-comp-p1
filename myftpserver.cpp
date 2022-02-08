@@ -31,8 +31,8 @@ void socketThread(int newSocket) {
 
     } else if (token.compare("cd") == 0) {
         if (chdir(arg2) != 0) { //changes into directory or the if statments triggers
-            cout << arg2 << endl;
-            send(newSocket, "cdError", 7, 0);
+            string cdError = token + ": " + token2 + ": No such file or directory";
+            send(newSocket, cdError.c_str(), cdError.length(), 0);
         }
     } else if (token.compare("mkdir") == 0) {
 
