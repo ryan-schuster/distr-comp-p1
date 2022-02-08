@@ -38,12 +38,12 @@ void socketThread(int newSocket) {
     } else if (token.compare("delete") == 0) {
 
     } else if (token.compare("ls") == 0) {
-	struct dirent *dr;
+        struct dirent *dr;
     	string s = "";
-   	DIR *directory = opendir(".");
+        DIR *directory = opendir(".");
         for(dr=readdir(directory); dr!=NULL; dr=readdir(directory)){
            s = s + ", " + dr->d_name;
-	}
+        }
         send(newSocket, s.c_str(), s.length(), 0);
         closedir(directory);
     } else if (token.compare("cd") == 0) {
@@ -63,9 +63,9 @@ void socketThread(int newSocket) {
             send(newSocket, mkdirError.c_str(), mkdirError.length(), 0);
         }
     } else if (token.compare("pwd") == 0) {
-	char st[256];
+        char st[256];
         string cwd = getcwd(st, 256);
-	send(newSocket, cwd.c_str(), cwd.length(), 0);
+        send(newSocket, cwd.c_str(), cwd.length(), 0);
 
     } else if (token.compare("quit") == 0) {
 
