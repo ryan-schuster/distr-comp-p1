@@ -6,6 +6,7 @@
 #include <string.h>
 #include <thread>
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -14,18 +15,25 @@ void socketThread(int newSocket) {
     int valread = read(newSocket , buffer, 1024);
     string buf(buffer); //constructor casts char[] into string
     int index = buf.find(" "); //index where first space is
+    int index2 = buf.find(" ", index + 1);
     string token = buf.substr(0, index); //first word
+    string token2 = buf.substr(index + 1, index2 - index); //second word
+    const char* arg = token.c_str(); //first word but in char* format
+    const char * arg2 = token2.c_str(); //second word but in char* format
 
     if (token.compare("get") == 0) {
 
     } else if (token.compare("put") == 0) {
-        printf("Put received\n");
+        cout << arg2 << endl;
     } else if (token.compare("delete") == 0) {
 
     } else if (token.compare("ls") == 0) {
 
     } else if (token.compare("cd") == 0) {
-
+        if (chdir(arg2) != 0) { //changes into directory or the if statments triggers
+            cout << arg2 << endl;
+            send(newSocket, "cdError", 7, 0);
+        }
     } else if (token.compare("mkdir") == 0) {
 
     } else if (token.compare("pwd") == 0) {
