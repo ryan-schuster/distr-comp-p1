@@ -1,4 +1,3 @@
-// Client side C/C++ program to demonstrate Socket programming
 #include <stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -23,7 +22,8 @@ void worker(string msg, int sock) {
 
   cout << token;
   if (token.compare("quit") == 0) {
-    cout << "GOODBYE";
+    send(sock , msg.c_str() , msg.length() , 0 );
+    cout << "GOODBYE" << endl;
     exit(EXIT_SUCCESS);
   } else if(token.substr(0,3).compare("put")==0) {
      cout << "PUTTING" << endl;
@@ -37,14 +37,15 @@ void worker(string msg, int sock) {
      }
 
      string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+     contents = msg + " *" + contents;
+     cout << contents << endl;
      cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
      cout<<"[LOG] : Sending...\n";
      int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
      cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
      cout<<"[LOG] : File Transfer Complete.\n";
-  }
-  else {
-  send(sock , msg.c_str() , msg.length() , 0 );
+  } else {
+    send(sock , msg.c_str() , msg.length() , 0 );
   }
   valread = read( sock , buffer, 1024);
   if (token.substr(0,3).compare("get")== 0) {

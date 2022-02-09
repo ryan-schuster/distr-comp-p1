@@ -12,6 +12,7 @@
 #include <fstream>
 
 using namespace std;
+bool guard = true;
 
 void socketThread(int newSocket) {
 	char buffer[1024] = {0};
@@ -32,8 +33,6 @@ void socketThread(int newSocket) {
     args[1] = const_cast<char*>(token2.c_str());
     args[2] = NULL;
 
-
-    if (token.compare("get") == 0) {
 	if (token.compare("get") == 0) {
       file.open(token2, ios::in | ios::binary);
       if(file.is_open()){
@@ -51,12 +50,16 @@ void socketThread(int newSocket) {
       cout<<"[LOG] : File Transfer Complete.\n";
 		
     } else if (token.compare("put") == 0) {
+        int index3 = buf.find("*");
+        string token3 = buf.substr(index3+1);
+        cout << token3 << endl;
+        char buffer2[1024] = {0};
         printf("Put received\n");
         cout << "HERE" << endl;
-        string fileName = buf.substr(index + 1, index2 - index);
+        string fileName = token2;
         cout << "File name: " << fileName << endl;
         ofstream outfile(fileName.c_str());
-        outfile.write(buffer, sizeof(buffer));
+        outfile.write(token3.c_str(), sizeof(token3));
         outfile.close();
     } else if (token.compare("delete") == 0) {
 	string stError = "An error occured while trying to delete this file";
@@ -95,7 +98,8 @@ void socketThread(int newSocket) {
         send(newSocket, cwd.c_str(), cwd.length(), 0);
 
     } else if (token.compare("quit") == 0) {
-
+        guard = false;
+        close(newSocket);
     }
 }
 
@@ -155,7 +159,8 @@ int main(int argc, char const *argv[]) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        while (true) { //continue to accept requests from a connection
+        guard = true;
+        while (guard) { //continue to accept requests from a connection
             tid[i] = thread(socketThread, newSocket); //new thread for every request, calls socketThread function
             /*    perror("failed to make thread"); //error checking code to implement later
                 exit(EXIT_FAILURE);
