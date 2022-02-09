@@ -51,7 +51,13 @@ void socketThread(int newSocket) {
       cout<<"[LOG] : File Transfer Complete.\n";
 		
     } else if (token.compare("put") == 0) {
-
+        printf("Put received\n");
+        cout << "HERE" << endl;
+        string fileName = buf.substr(index + 1, index2 - index);
+        cout << "File name: " << fileName << endl;
+        ofstream outfile(fileName.c_str());
+        outfile.write(buffer, sizeof(buffer));
+        outfile.close();
     } else if (token.compare("delete") == 0) {
 	string stError = "An error occured while trying to delete this file";
 		if(remove(token2.c_str())!=0){
