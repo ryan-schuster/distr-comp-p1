@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sys/wait.h>
 #include <dirent.h>
+#include <fstream>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ void socketThread(int newSocket) {
     const char * arg2 = token2.c_str(); //second word but in char* format
     int pid;
     int status;
+    fsteam file;
 
     char * args[3]; //used for execvp
     args[0] = const_cast<char*>(token.c_str());
@@ -32,7 +34,22 @@ void socketThread(int newSocket) {
 
 
     if (token.compare("get") == 0) {
-
+	if (token.compare("get") == 0) {
+      file.open(token2, ios::in | ios::binary);
+      if(file.is_open()){
+        cout<<"[LOG] : File is ready to Transmit.\n";
+      }
+      else{
+        cout<<"[ERROR] : File loading failed, Exititng.\n";
+        exit(EXIT_FAILURE);
+      }
+      string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+      cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
+      cout<<"[LOG] : Sending...\n";
+      int bytes_sent = send(newSocket , contents.c_str() , contents.length() ,0);
+      cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
+      cout<<"[LOG] : File Transfer Complete.\n";
+		
     } else if (token.compare("put") == 0) {
 
     } else if (token.compare("delete") == 0) {
