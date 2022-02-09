@@ -13,6 +13,12 @@ using namespace std;
 void worker(string msg, int sock) {
 	int valread;
 	char buffer[1024] = {0};
+	string token = msg.substr(0, 4);
+        cout << token;
+        if (token.compare("quit") == 0) {
+          cout << "GOODBYE";
+          exit(EXIT_SUCCESS);
+        }
 	send(sock , msg.c_str() , msg.length() , 0 ); 
 	valread = read( sock , buffer, 1024);
 	cout << buffer << endl; //print error or msg that needs to be printed
