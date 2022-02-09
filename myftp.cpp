@@ -24,7 +24,7 @@ void worker(string msg, int sock) {
         }
         send(sock , msg.c_str() , msg.length() , 0 );
         valread = read( sock , buffer, 1024);
-        if (token.compare("get")== 0) {
+        if (token.substr(0,3).compare("get")== 0) {
           string fileName = buf.substr(index + 1, index2 - index);
           ofstream outfile(fileName);
           outfile << buffer << endl;
