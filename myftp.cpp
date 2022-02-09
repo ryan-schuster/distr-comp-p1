@@ -14,13 +14,22 @@ void worker(string msg, int sock) {
 	int valread;
 	char buffer[1024] = {0};
 	string token = msg.substr(0, 4);
+        string buf(buffer); //constructor casts char[] into string              
+        int index = buf.find(" "); //index where first space is                 
+        int index2 = buf.find(" ", index + 1);
         cout << token;
         if (token.compare("quit") == 0) {
           cout << "GOODBYE";
           exit(EXIT_SUCCESS);
         }
-	send(sock , msg.c_str() , msg.length() , 0 ); 
-	valread = read( sock , buffer, 1024);
+        send(sock , msg.c_str() , msg.length() , 0 );
+        valread = read( sock , buffer, 1024);
+        if (token.compare("get")== 0) {
+          string fileName = buf.substr(index + 1, index2 - index);
+          ofstream outfile(fileName);
+          outfile << buffer << endl;
+        }
+	//printf("%s\n",buffer );
 	cout << buffer << endl; //print error or msg that needs to be printed
 }
 
