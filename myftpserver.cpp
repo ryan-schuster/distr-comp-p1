@@ -25,7 +25,7 @@ void socketThread(int newSocket) {
     const char * arg2 = token2.c_str(); //second word but in char* format
     int pid;
     int status;
-    fsteam file;
+    fstream file;
 
     char * args[3]; //used for execvp
     args[0] = const_cast<char*>(token.c_str());
