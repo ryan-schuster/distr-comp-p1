@@ -54,7 +54,7 @@ void socketThread(int newSocket) {
 
     } else if (token.compare("delete") == 0) {
 	string stError = "An error occured while trying to delete this file";
-		if(remove(token2)!=0){
+		if(remove(token2.c_str())!=0){
 		send(newSocket, stError.c_str(), stError.length(), 0);
 	}
 
