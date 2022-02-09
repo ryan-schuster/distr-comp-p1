@@ -12,26 +12,50 @@
 using namespace std;
 
 void worker(string msg, int sock) {
-	int valread;
-	char buffer[1024] = {0};
-	string token = msg.substr(0, 4);
-        string buf(buffer); //constructor casts char[] into string              
-        int index = buf.find(" "); //index where first space is                 
-        int index2 = buf.find(" ", index + 1);
-        cout << token;
-        if (token.compare("quit") == 0) {
-          cout << "GOODBYE";
-          exit(EXIT_SUCCESS);
-        }
-        send(sock , msg.c_str() , msg.length() , 0 );
-        valread = read( sock , buffer, 1024);
-        if (token.substr(0,3).compare("get")== 0) {
-          string fileName = buf.substr(index + 1, index2 - index);
-          ofstream outfile(fileName);
-          outfile << buffer << endl;
-        }
-	//printf("%s\n",buffer );
-	cout << buffer << endl; //print error or msg that needs to be printed
+  int valread;
+  char buffer[1024] = {0};
+  string token = msg.substr(0, 4);
+  string buf(msg); //constructor casts char[] into string                                                                                   
+  int index = buf.find(" "); //index where first space is                                                                                   
+  int index2 = buf.find(" ", index + 1);
+  string token2 = buf.substr(index + 1, index2 - index);
+  fstream file;
+
+  cout << token;
+  if (token.compare("quit") == 0) {
+    cout << "GOODBYE";
+    exit(EXIT_SUCCESS);
+  } else if(token.substr(0,3).compare("put")==0) {
+     cout << "PUTTING" << endl;
+     file.open(token2, ios::in | ios::binary);
+     if(file.is_open()){
+       cout<<"[LOG] : File is ready to Transmit.\n";
+     }
+     else{
+       cout<<"[ERROR] : File loading failed, Exititng.\n";
+       exit(EXIT_FAILURE);
+     }
+
+     string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+     cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
+     cout<<"[LOG] : Sending...\n";
+     int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
+     cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
+     cout<<"[LOG] : File Transfer Complete.\n";
+  }
+  else {
+  send(sock , msg.c_str() , msg.length() , 0 );
+  }
+  valread = read( sock , buffer, 1024);
+  if (token.substr(0,3).compare("get")== 0) {
+    cout << "HERE" << endl;
+    string fileName = buf.substr(index + 1, index2 - index);
+    cout << "File name: " << fileName << endl;
+    ofstream outfile(fileName.c_str());
+    outfile.write(buffer, sizeof(buffer));
+    outfile.close();
+  }
+  printf("%s\n",buffer );
 }
 
 int main(int argc, char const *argv[])
