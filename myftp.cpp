@@ -9,6 +9,7 @@
 #include <fstream>
 
 using namespace std;
+int termID = -1;
 
 void worker(string msg, int sock) {
   int valread;
@@ -44,12 +45,16 @@ void worker(string msg, int sock) {
      cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
      cout<<"[LOG] : Sending...\n";
      int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
+     valread = read(sock, idBuffer, 100); //recieve command id
+     cout << "command ID idBuffer" << idBuffer << endl;
+     //while loop of 1000 bytes reading, while loop should check if termId = idBuffer, after exit delete files made
+
      cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
      cout<<"[LOG] : File Transfer Complete.\n";
   } else {
     send(sock , msg.c_str() , msg.length() , 0 );
   }
-  if (token.substr(0,3).compare("get")== 0 || token.substr(0,3).compare("put")== 0) { //prints out put and get command ID
+  if (token.substr(0,3).compare("get")== 0 ) { //prints out put and get command ID
     valread = read(sock, idBuffer, 100); //server should send a msg if file request exists or not
     if (valread < 1) {
       cout << "Socket read error" <<endl;
@@ -100,6 +105,7 @@ void worker(string msg, int sock) {
 void terminateWorker(string msg, int term_sock) {
   int index = msg.find(" ");
   string termId = msg.substr(index +1, msg.length());
+  termID = atoi(termId.c_str());
   send(term_sock , termId.c_str() , termId.length() , 0 );
 }
 

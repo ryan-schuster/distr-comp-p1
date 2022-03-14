@@ -51,8 +51,7 @@ void socketThread(int newSocket) {
       file.open(token2, ios::in | ios::binary);
       if(file.is_open()){
         cout<<"[LOG] : File is ready to Transmit.\n";
-      }
-      else{
+      }   else{
 	cout<<"[ERROR] : File loading failed, Exititng.\n";
         exit(EXIT_FAILURE);
       }
@@ -65,13 +64,9 @@ void socketThread(int newSocket) {
       int bytes_sent = send(newSocket , contents.c_str() , contents.length() ,0);
       cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
       cout<<"[LOG] : File Transfer Complete.\n";
-        } else {
-            cout<<"[ERROR] : File does not exist\n";
-            string error = "[ERROR] : File does not exist\n";
-            send(newSocket, error.c_str(), error.length(), 0);
-        }
                 
     } else if (token.compare("put") == 0) {
+        send(newSocket, cmdId.c_str(), cmdId.length(), 0); //send command id
         int index3 = buf.find("*");
         string token3 = buf.substr(index3+1);
         cout << token3 << endl;
