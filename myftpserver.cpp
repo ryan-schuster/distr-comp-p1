@@ -48,21 +48,23 @@ void socketThread(int newSocket) {
     string cmdId = to_string(id);
 
 	if (token.compare("get") == 0) {
-        if (access(token2.c_str(), F_OK) != -1) {
-            string exists = "File exists\n";
-            send(newSocket, exists.c_str(), exists.length(),0);
-            send(newSocket, cmdId.c_str(), cmdId.length(), 0); //send command id
-            file.open(token2, ios::in | ios::binary);
-            cout<<"[LOG] : File is ready to Transmit.\n";
-            string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-            //change so every 1000 bytes it will check if id == termId, if it is, stop reading, send msg for other side to delete incomplete file
-            //should reset termId back to -1 after used
-            //the client should check if msg sent is signal to stop
-            cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
-            cout<<"[LOG] : Sending...\n";
-            int bytes_sent = send(newSocket , contents.c_str() , contents.length() ,0);
-            cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
-            cout<<"[LOG] : File Transfer Complete.\n";
+      file.open(token2, ios::in | ios::binary);
+      if(file.is_open()){
+        cout<<"[LOG] : File is ready to Transmit.\n";
+      }
+      else{
+	cout<<"[ERROR] : File loading failed, Exititng.\n";
+        exit(EXIT_FAILURE);
+      }
+      string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+      cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
+      cout<<"[LOG] : Sending...\n";
+      string exists = "File exists\n";
+      send(newSocket, exists.c_str(), exists.length(),0);
+      send(newSocket, cmdId.c_str(), cmdId.length(), 0);
+      int bytes_sent = send(newSocket , contents.c_str() , contents.length() ,0);
+      cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
+      cout<<"[LOG] : File Transfer Complete.\n";
         } else {
             cout<<"[ERROR] : File does not exist\n";
             string error = "[ERROR] : File does not exist\n";
