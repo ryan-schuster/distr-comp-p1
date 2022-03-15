@@ -65,20 +65,28 @@ void socketThread(int newSocket) {
       cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
       cout<<"[LOG] : File Transfer Complete.\n";
                 
-    } else if (token.compare("put") == 0) {
-        send(newSocket, cmdId.c_str(), cmdId.length(), 0); //send command id
+    }  else if (token.compare("put") == 0) {
+        send(newSocket, cmdId.c_str(), cmdId.length(), 0); //send command id                                                                    
         int index3 = buf.find("*");
+
+        int newSize = sizeof(buffer) - index3;
+        index3 += 1;
         string token3 = buf.substr(index3+1);
+        char newBuf[newSize];
+        for (int i = index3; i < sizeof(buffer); i++) {
+          newBuf[i - index3] = buffer[i];
+        }
         cout << token3 << endl;
-        //char buffer2[1024] = {0};
+        //char buffer2[1024] = {0};                                                                                                             
         printf("Put received\n");
         cout << "HERE" << endl;
         string fileName = token2;
         cout << "File name: " << fileName << endl;
-        //same deal as get, check every 1000 bytes if id = termId and if so stop reading and cleanup created files
-        //need a way for the client to know to stop sending bytes
+        //same deal as get, check every 1000 bytes if id = termId and if so stop reading and cleanup created files                              
+        //need a way for the client to know to stop sending bytes                                                                               
         ofstream outfile(fileName.c_str());
-        outfile.write(token3.c_str(), sizeof(token3));
+        //outfile.write(token3.c_str(), sizeof(token3));                                                                                        
+        outfile.write(newBuf, sizeof(newBuf));
         outfile.close();
     } else if (token.compare("delete") == 0) {
         string stError = "An error occured while trying to delete this file";
