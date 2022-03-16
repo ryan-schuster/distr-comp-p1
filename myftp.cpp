@@ -47,9 +47,10 @@ void worker(string msg, int sock) {
       cout << contents << endl;
       cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
       cout<<"[LOG] : Sending...\n";
-      int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
       valread = read(sock, idBuffer, 100); //recieve command id
       cout << "command ID idBuffer" << idBuffer << endl;
+      int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
+      send(sock, "ENDOFFILE", 9, 0);
       cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
       cout<<"[LOG] : File Transfer Complete.\n";
      } else {
@@ -217,6 +218,7 @@ int main(int argc, char const *argv[])
       tid[i] = thread(terminateWorker, msg, term_sock); 
     } else {
       if (msg.back() == '&') { //run command in seperate thread
+        msg.pop_back();
         tid[i] = thread(worker, msg, sock);
         i++;
         if (i >= 50) {
