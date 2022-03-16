@@ -14,6 +14,7 @@ int termID = -1;
 void worker(string msg, int sock) {
   int valread;
   bool guard = true;
+  bool notPut = true;
   char buffer[1024] = {0};
   char idBuffer[100] = {0}; //initizales all to null
   string token = msg.substr(0, 4);
@@ -29,6 +30,7 @@ void worker(string msg, int sock) {
     cout << "\nGOODBYE" << endl;
     exit(EXIT_SUCCESS);
   } else if(token.substr(0,3).compare("put")==0) {
+      notPut = false;
      cout << "PUTTING" << endl;
      file.open(token2, ios::in | ios::binary);
      if(file.is_open()){
@@ -36,21 +38,55 @@ void worker(string msg, int sock) {
      }
      else{
        cout<<"[ERROR] : File loading failed, Exititng.\n";
-       exit(EXIT_FAILURE);
+        file.open(token2, ios::in | ios::binary);
      }
 
      string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-     contents = msg + " *" + contents;
-     cout << contents << endl;
-     cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
-     cout<<"[LOG] : Sending...\n";
-     int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
-     valread = read(sock, idBuffer, 100); //recieve command id
-     cout << "command ID idBuffer" << idBuffer << endl;
-     //while loop of 1000 bytes reading, while loop should check if termId = idBuffer, after exit delete files made
+     if (contents.size() < 1000) {
+      contents = msg + " *" + contents;
+      cout << contents << endl;
+      cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
+      cout<<"[LOG] : Sending...\n";
+      int bytes_sent = send(sock , contents.c_str() , contents.length() ,0);
+      valread = read(sock, idBuffer, 100); //recieve command id
+      cout << "command ID idBuffer" << idBuffer << endl;
+      cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
+      cout<<"[LOG] : File Transfer Complete.\n";
+     } else {
+        int contentsIndex = 0;
+//        string partialMsg = msg + " *" + contents.substr(contentsIndex, contentsIndex+970);
+  //      contentsIndex= contentsIndex+ partialMsg.size();
+    //    cout<<"[LOG] : Transmission Data Size "<< partialMsg.length()<<" Bytes.\n";
+        cout<<"[LOG] : Sending...\n";
+        send(sock, msg.c_str(), msg.length(), 0);
+        valread = read(sock, idBuffer, 100); //recieve command id
+        cout << "command ID" << idBuffer << endl;
+        cout << contentsIndex << "contentsIndex" << endl;
+        cout << contents.size() << "contents size" << endl;
+        string partialMsg = "";
+        int bytes_sent = 0;
+        while (termID != atoi(idBuffer) && contentsIndex + 30 < contents.size()) {
+          if (contents.size() - contentsIndex > 1000) {
+            partialMsg.assign(contents.substr(contentsIndex, contentsIndex+999));
+            //cout << partialMsg << "partialmsg" << endl; shows entire book
+            contentsIndex = contentsIndex +1000;
+            bytes_sent = send(sock, partialMsg.c_str(), partialMsg.length(), 0);
+            cout<<"[LOG] : Transmission Data Size "<< partialMsg.length()<<" Bytes.\n";
+          }
+        }
+        if (contentsIndex +30 > contents.size()) {
+          send(sock, "ENDOFFILE", 9, 0);
+        }
+        if (termID != atoi(idBuffer)) {
+          cout<<"[LOG] : File Transfer Complete.\n";
+        } else { //put was terminated
+          cout<<"[LOG] : File Transfer terminated.\n";
+          termID = -1;
+        }
+     }
+      //while loop of 1000 bytes reading, while loop should check if termId = idBuffer, after exit delete files made
 
-     cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
-     cout<<"[LOG] : File Transfer Complete.\n";
+     
   } else {
     send(sock , msg.c_str() , msg.length() , 0 );
   }
@@ -75,7 +111,7 @@ void worker(string msg, int sock) {
     }
   }
 
-  if (guard) { //if guard is false then error occured so don't read from socket for get
+  if (guard && notPut) { //if guard is false then error occured so don't read from socket for get
 
     valread = read( sock , buffer, 1024); //read main msg from server
     if (valread < 1) {

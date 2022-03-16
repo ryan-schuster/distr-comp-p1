@@ -53,7 +53,7 @@ void socketThread(int newSocket) {
         cout<<"[LOG] : File is ready to Transmit.\n";
       }   else{
 	cout<<"[ERROR] : File loading failed, Exititng.\n";
-        exit(EXIT_FAILURE);
+      file.open(token2, ios::in | ios::binary);
       }
       string contents((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
       cout<<"[LOG] : Transmission Data Size "<<contents.length()<<" Bytes.\n";
@@ -84,10 +84,28 @@ void socketThread(int newSocket) {
         cout << "File name: " << fileName << endl;
         //same deal as get, check every 1000 bytes if id = termId and if so stop reading and cleanup created files                              
         //need a way for the client to know to stop sending bytes                                                                               
-        ofstream outfile(fileName.c_str());
-        //outfile.write(token3.c_str(), sizeof(token3));                                                                                        
+        ofstream outfile(fileName.c_str(), ios_base::app);
+        outfile.write(token3.c_str(), sizeof(token3));                                                                                        
         outfile.write(newBuf, sizeof(newBuf));
+        char msgBuffer[1000] = {0};
+        while (termId != atoi(cmdId.c_str())) {
+            valread = read(newSocket , msgBuffer, 1000);
+            if (valread < 1) {
+                cout << "Socket read error" <<endl;
+            }
+            string terminateMsg(msgBuffer);
+            int index5 = terminateMsg.find(" ");
+            string terminMsg = terminateMsg.substr(0,index5);
+            if (terminMsg.compare("ENDOFFILE")) {
+                break;
+            }
+            outfile.write(msgBuffer, sizeof(msgBuffer));
+        }
         outfile.close();
+        if (termId == atoi(cmdId.c_str())) {
+            termId = -1;
+            remove(token2.c_str());
+        }
     } else if (token.compare("delete") == 0) {
         string stError = "An error occured while trying to delete this file";
 		if(remove(token2.c_str())!=0){
