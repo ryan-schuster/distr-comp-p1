@@ -61,9 +61,32 @@ void socketThread(int newSocket) {
       string exists = "File exists\n";
       send(newSocket, exists.c_str(), exists.length(),0);
       send(newSocket, cmdId.c_str(), cmdId.length(), 0);
-      int bytes_sent = send(newSocket , contents.c_str() , contents.length() ,0);
-      cout<<"[LOG] : Transmitted Data Size "<<bytes_sent<<" Bytes.\n";
-      cout<<"[LOG] : File Transfer Complete.\n";
+      int contentsIndex = 0;
+      string partialMsg = "";
+      int bytes_sent = 0;
+      while (termId != atoi(cmdId.c_str()) && contentsIndex + 20 < contents.size()) {
+          if (contents.size() - contentsIndex > 1000) {
+          partialMsg.assign(contents.substr(contentsIndex, contentsIndex+1000));
+          contentsIndex = contentsIndex+1000;
+            bytes_sent = send(newSocket , partialMsg.c_str() , partialMsg.length() ,0);
+            cout<<"[LOG] : Transmitted Data "<<bytes_sent<<" Bytes.\n";
+          } else {
+          partialMsg.assign(contents.substr(contentsIndex, contents.size()-1));
+            bytes_sent = send(newSocket , partialMsg.c_str() , partialMsg.length() ,0);
+            cout<<"[LOG] : Transmitted Data "<<bytes_sent<<" Bytes.\n";
+          }
+ 
+        if (contentsIndex+30 > contents.size()) {
+            send(newSocket, "ENDOFFILE", 9, 0);
+        }
+
+        if (termId != atoi(cmdId.c_str())) {
+            cout<<"[LOG] : File Transfer Complete.\n";
+        } else {
+            cout<<"[LOG] : File Transfer terminated.\n";
+            termId = -1;
+      }
+      }
                 
     }  else if (token.compare("put") == 0) {
         send(newSocket, cmdId.c_str(), cmdId.length(), 0); //send command id                                                                    
@@ -85,9 +108,9 @@ void socketThread(int newSocket) {
         //same deal as get, check every 1000 bytes if id = termId and if so stop reading and cleanup created files                              
         //need a way for the client to know to stop sending bytes                                                                               
         ofstream outfile(fileName.c_str(), ios_base::app);
-        outfile.write(token3.c_str(), sizeof(token3));                                                                                        
+        //outfile.write(token3.c_str(), sizeof(token3));                                                                                        
         outfile.write(newBuf, sizeof(newBuf));
-        char msgBuffer[1000] = {0};
+        char msgBuffer[1000];
         while (termId != atoi(cmdId.c_str())) {
             valread = read(newSocket , msgBuffer, 1000);
             if (valread < 1) {
@@ -99,6 +122,7 @@ void socketThread(int newSocket) {
             if (terminMsg.compare("ENDOFFILE")) {
                 break;
             }
+
             outfile.write(msgBuffer, sizeof(msgBuffer));
         }
         outfile.close();

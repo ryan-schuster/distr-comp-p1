@@ -7,9 +7,11 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include <mutex>
 
 using namespace std;
 int termID = -1;
+mutex mtx;
 
 void worker(string msg, int sock) {
   int valread;
@@ -61,19 +63,26 @@ void worker(string msg, int sock) {
         cout<<"[LOG] : Sending...\n";
         send(sock, msg.c_str(), msg.length(), 0);
         valread = read(sock, idBuffer, 100); //recieve command id
+        mtx.lock();
         cout << "command ID" << idBuffer << endl;
+        mtx.unlock();
         cout << contentsIndex << "contentsIndex" << endl;
         cout << contents.size() << "contents size" << endl;
         string partialMsg = "";
         int bytes_sent = 0;
         while (termID != atoi(idBuffer) && contentsIndex + 30 < contents.size()) {
           if (contents.size() - contentsIndex > 1000) {
-            partialMsg.assign(contents.substr(contentsIndex, contentsIndex+999));
+            partialMsg.assign(contents.substr(contentsIndex, contentsIndex+1000));
             //cout << partialMsg << "partialmsg" << endl; shows entire book
             contentsIndex = contentsIndex +1000;
             bytes_sent = send(sock, partialMsg.c_str(), partialMsg.length(), 0);
             cout<<"[LOG] : Transmission Data Size "<< partialMsg.length()<<" Bytes.\n";
-          }
+          } else {
+             partialMsg.assign(contents.substr(contentsIndex, contents.size()-1));
+            //cout << partialMsg << "partialmsg" << endl; shows entire book
+            bytes_sent = send(sock, partialMsg.c_str(), partialMsg.length(), 0);
+            cout<<"[LOG] : Transmission Data "<< partialMsg.length()<<" Bytes.\n";
+
         }
         if (contentsIndex +30 > contents.size()) {
           send(sock, "ENDOFFILE", 9, 0);
@@ -85,6 +94,8 @@ void worker(string msg, int sock) {
           termID = -1;
         }
      }
+     }
+
       //while loop of 1000 bytes reading, while loop should check if termId = idBuffer, after exit delete files made
 
      
@@ -130,8 +141,29 @@ void worker(string msg, int sock) {
       fclose(file);*/
       //also change so a while loop keeps reading 1000 bytes at a time, the while loop exits when the last msg is something like "end of file"
       ofstream outfile(fileName.c_str()); //Code doesn't work???? maybe the buffer recieved is corrupted
+
       outfile.write(buffer, sizeof(buffer));
+      int index5 = 0;
+      while (termID != atoi(idBuffer)) {
+          valread = read( sock , buffer, 1000); //read main msg from server
+          if (valread < 1) {
+              cout << "Socket read error" <<endl;
+          }
+          string endoffile(buffer);
+          index5 = endoffile.find(" ");
+          string endMsg = endoffile.substr(0,index5);
+          if (endMsg.compare("ENDOFFILE")) {
+            break;
+          }
+          outfile.write(buffer, sizeof(buffer));
+      }
+
+
       outfile.close();
+      if (termID == atoi(idBuffer)) {
+        termID = -1;
+        remove(fileName.c_str());
+      }
     }
     cout << endl;
     printf("%s\n",buffer );
